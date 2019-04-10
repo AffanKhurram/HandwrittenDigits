@@ -26,37 +26,37 @@ m_test = images.shape[0] - m
 images, images_test = images[:m], images[m:]
 labels, labels_test = labels[:m], labels[m:]
 
+# Variables for our model
 n_x = images.shape[0] # Number of training sets
 m = images.shape[1] # Size of each of the pictures
+n_h = 64 # Number of nodes in our hidden layer
 
-w = np.random.randn(m, 1) * 0.01
-b = np.zeros((1, 1))
+w1 = np.random.randn(m, n_h) # First set of weights (Input -> hidden)
+b1 = np.zeros((1, 1)) # Bias for inputs
 
+w2 = np.random.randn(n_h, 1) # Second set of weights (Hidden -> output)
+b2 = np.zeros((1, 1)) # Bias for hidden
 
 learning_rate = 1
 
 
-for i in range(2000):
+for i in range(1):
     # Input -> Output
-    z = np.matmul(images, w) + b  # Multiply the weights and inputs
-    a = sigmoid(z) # apply non-linearity to our multiplied value
+    z1 = np.matmul(images, w1) # Multiply our inputs by the weights
+    a1 = sigmoid(z1) # Apply non-linearity to our hidden layer nodes
 
-    dw = (1/n_x) * np.matmul(images.T, (a-labels.reshape(labels.shape[0], 1)))
-    db = (1/n_x) * np.sum((a.T-labels), axis=1, keepdims=True)
+    # Hidden -> Output
+    z2 = np.matmul(a1, w2)
+    a2 = sigmoid(z2)
 
-    w -= learning_rate * dw
-    b -= learning_rate * db
+    # Backpropagation
+    # Output -> Hidden
+    dz2 = a2 - labels.reshape(labels.shape[0], 1)
+    dw2 = (1./n_x) * np.matmul(a1.T, dz2)
+    db2 = (1./n_x) * np.sum(dz2.T, axis=1, keepdims=True)
+    # Hidden -> Input
+    da1 = 
 
-    if i % 100 == 0:
-        print('Epoch ', i,' cost: ', computeLoss(labels, a.T))
+
 
     
-from sklearn.metrics import classification_report, confusion_matrix
-
-z = np.matmul(images_test, w) + b
-a = sigmoid(z)
-
-predictions = (a > 0.5)[0:]
-ls = (labels_test == 1)[0:]
-
-print(confusion_matrix(predictions, ls))
