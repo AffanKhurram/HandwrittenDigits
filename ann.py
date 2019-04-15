@@ -51,12 +51,25 @@ for i in range(1):
 
     # Backpropagation
     # Output -> Hidden
-    dz2 = a2 - labels.reshape(labels.shape[0], 1)
+    dz2 = a2 - labels.reshape(labels.shape[0], 1)       
     dw2 = (1./n_x) * np.matmul(a1.T, dz2)
     db2 = (1./n_x) * np.sum(dz2.T, axis=1, keepdims=True)
     # Hidden -> Input
-    da1 = 
+    da1 = np.matmul(labels.reshape(labels.shape[0], 1), w2.T)
+    print(labels.reshape(labels.shape[0], 1).shape)
+    dz1 = da1 * sigmoid(z1) * (1 - sigmoid(z1))
+    dw1 = (1./n_x) * np.matmul(images.T, dz1)
+    print(dz1.shape)
+    db1 = (1./n_x) * np.sum(dz1.T, axis=1, keepdims=True)
 
+    # Change values
+    w2 -= dw2 * learning_rate
+    b2 -= db2 * learning_rate
+    w1 -= dw1 * learning_rate
+    b1 -= db1 * learning_rate
+
+    if i % 100 == 0:
+        print('Epoch ', i, 'cost ', computeLoss(labels, a2))
 
 
     
