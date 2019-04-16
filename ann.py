@@ -32,7 +32,7 @@ m = images.shape[1] # Size of each of the pictures
 n_h = 64 # Number of nodes in our hidden layer
 
 w1 = np.random.randn(m, n_h) # First set of weights (Input -> hidden)
-b1 = np.zeros((1, 1)) # Bias for inputs
+b1 = np.zeros((n_h, 1)) # Bias for inputs
 
 w2 = np.random.randn(n_h, 1) # Second set of weights (Hidden -> output)
 b2 = np.zeros((1, 1)) # Bias for hidden
@@ -40,7 +40,7 @@ b2 = np.zeros((1, 1)) # Bias for hidden
 learning_rate = 1
 
 
-for i in range(1):
+for i in range(2000):
     # Input -> Output
     z1 = np.matmul(images, w1) # Multiply our inputs by the weights
     a1 = sigmoid(z1) # Apply non-linearity to our hidden layer nodes
@@ -56,10 +56,10 @@ for i in range(1):
     db2 = (1./n_x) * np.sum(dz2.T, axis=1, keepdims=True)
     # Hidden -> Input
     da1 = np.matmul(labels.reshape(labels.shape[0], 1), w2.T)
-    print(labels.reshape(labels.shape[0], 1).shape)
+    
     dz1 = da1 * sigmoid(z1) * (1 - sigmoid(z1))
     dw1 = (1./n_x) * np.matmul(images.T, dz1)
-    print(dz1.shape)
+    
     db1 = (1./n_x) * np.sum(dz1.T, axis=1, keepdims=True)
 
     # Change values
@@ -69,7 +69,7 @@ for i in range(1):
     b1 -= db1 * learning_rate
 
     if i % 100 == 0:
-        print('Epoch ', i, 'cost ', computeLoss(labels, a2))
+        print('Epoch ', i, 'cost ', computeLoss(labels.reshape(labels.shape[0], 1), a2))
 
 
     
