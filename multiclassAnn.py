@@ -16,8 +16,8 @@ y_new = y_new.T.reshape(digits, examples)
 m = 60000
 m_test = x.shape[0] - m
 
-x_train, x_test = x[:m].T, x[m:].T
-y_train, y_test = y_new[:,:m], y_new[:,m:]
+x_train, x_test = x[:m], x[m:]
+y_train, y_test = y_new[:,:m].T, y_new[:,m:].T
 
 def compute_multiclass_loss(Y, Y_hat):
 
@@ -30,25 +30,25 @@ def compute_multiclass_loss(Y, Y_hat):
 def sigmoid(z):
     return 1/(1+np.exp(-z))
 
-n_x = x_train.shape[0]
+
+n_x = x_train.shape[1]
 n_h = 64
 learning_rate = 1
 
-w1 = np.random.randn(n_h, n_x)
-b1 = np.zeros((n_h, 1))
-w2 = np.random.randn(digits, n_h)
-b2 = np.zeros((digits, 1))
+w1 = np.random.randn(n_x, n_h)
+b1 = np.zeros((1, n_h))
+w2 = np.random.randn(n_h, digits)
+b2 = np.zeros((1, digits))
 
 x = x_train
 y = y_train
 
-for i in range(2000):
-        z1 = np.matmul(w1, x)
+for i in range(1):
+        z1 = np.matmul(x, w1)
         a1 = sigmoid(z1)
-        z2 = np.matmul(a2, w2)
+        z2 = np.matmul(a1, w2)
         a2 = np.exp(z2)/np.sum(np.exp(z2), axis=0)
-        
-        cost = compute_multiclass_loss(y, a2)
 
-        dz2 = a2 - y
-        dw2 = (1./m) * np.matmul()
+        dz2 = y - a2
+        dw2 = (1./m) * np.matmul(dz2.T, a2)
+        db2 = (1./m) * np.sum()
