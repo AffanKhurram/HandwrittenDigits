@@ -44,11 +44,25 @@ x = x_train
 y = y_train
 
 for i in range(1):
-        z1 = np.matmul(x, w1)
+        z1 = np.matmul(x, w1) + b1
         a1 = sigmoid(z1)
-        z2 = np.matmul(a1, w2)
+        z2 = np.matmul(a1, w2) + b2
         a2 = np.exp(z2)/np.sum(np.exp(z2), axis=0)
 
-        dz2 = y - a2
+        dz2 = a2-y
         dw2 = (1./m) * np.matmul(dz2.T, a2)
-        db2 = (1./m) * np.sum()
+        db2 = (1./m) * np.sum(dz2, axis=0, keepdims=True)
+        
+        da1 = np.matmul(dz2, w2.T)
+        dz1 = da1 * sigmoid(z1) * (1 - sigmoid(z1))
+        dw1 = (1./m) * np.matmul(dz1.T, x)
+        db1 = (1./m) * np.sum(dz1, axis=0, keepdims=True)
+
+
+        w2 -= learning_rate*dw2
+        w1 -= learning_rate*dw1
+        b2 -= learning_rate*db2
+        b1 -= learning_rate*db1
+
+        if (i%100 == 0):
+                print('Epoch ', i, ' cost ', compute_multiclass_loss(y, a2))
