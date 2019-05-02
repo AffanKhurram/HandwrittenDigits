@@ -20,12 +20,13 @@ x_train, x_test = x[:m], x[m:]
 y_train, y_test = y_new[:,:m].T, y_new[:,m:].T
 
 def compute_multiclass_loss(Y, Y_hat):
+        Y = Y.T
+        Y_hat = Y_hat.T
+        L_sum = np.sum(np.multiply(Y, np.log(Y_hat)))
+        m = Y.shape[1]
+        L = -(1/m) * L_sum
 
-    L_sum = np.sum(np.multiply(Y, np.log(Y_hat)))
-    m = Y.shape[1]
-    L = -(1/m) * L_sum
-
-    return L
+        return L
 
 def sigmoid(z):
     return 1/(1+np.exp(-z))
@@ -43,19 +44,20 @@ b2 = np.zeros((1, digits))
 x = x_train
 y = y_train
 
-for i in range(1):
+for i in range(2000):
         z1 = np.matmul(x, w1) + b1
         a1 = sigmoid(z1)
         z2 = np.matmul(a1, w2) + b2
-        a2 = np.exp(z2)/np.sum(np.exp(z2), axis=0)
+        a2 = np.exp(z2.T)/np.sum(np.exp(z2.T), axis=0)
+        a2 = a2.T
 
         dz2 = a2-y
-        dw2 = (1./m) * np.matmul(dz2.T, a2)
+        dw2 = (1./m) * np.matmul(a1.T, dz2)
         db2 = (1./m) * np.sum(dz2, axis=0, keepdims=True)
         
         da1 = np.matmul(dz2, w2.T)
         dz1 = da1 * sigmoid(z1) * (1 - sigmoid(z1))
-        dw1 = (1./m) * np.matmul(dz1.T, x)
+        dw1 = (1./m) * np.matmul(x.T, dz1)
         db1 = (1./m) * np.sum(dz1, axis=0, keepdims=True)
 
 
@@ -66,3 +68,4 @@ for i in range(1):
 
         if (i%100 == 0):
                 print('Epoch ', i, ' cost ', compute_multiclass_loss(y, a2))
+
