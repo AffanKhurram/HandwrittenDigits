@@ -13,7 +13,7 @@ erase = False
 imageArray = [[255 for i in range(500)] for j in range(500)]
 class DrawingWindow:
     def __init__(self, master):
-        
+        root = master
         def draw(event):
             global i, x, y, xprev, yprev, firstClick, stroke, erase
             if erase:
@@ -80,17 +80,28 @@ class DrawingWindow:
         def clear():
             c.delete("all")
         def save():
-            #clear()
-            c.postscript(file='drawing.cvs')
+            getter(c)
             from PIL import Image
-            img = Image.open('drawing.cvs')
-            imgstring = img.tobytes()
-            import base64
-            imgdata = base64.b64decode(imgstring)
-            with open('img.jpg', 'wb') as f:
-                f.write(imgdata)
+            import cv2
             
+            #img = Image.open('test.jpg')
+            #img.convert('1')
+            img = cv2.imread('test.jpg')
+            res = cv2.resize(img, dsize=(28, 28))
+            img2 = Image.fromarray(res, 'LA')
+            img2.save('test2.png')
+            import multiclassAnn as ann
+            ann.forward_pass(res)
+        def getter(widget):
+            from PIL import ImageGrab
+            x=root.winfo_rootx()+widget.winfo_x()
+            y=root.winfo_rooty()+widget.winfo_y()
+            x1=x+widget.winfo_width()
+            y1=y+widget.winfo_height()
+            ImageGrab.grab().crop((x,y,x1,y1)).save("test.jpg")
 
+        def rgb2gray(rgb):
+            return np.dot(rgb[...,:3], [0.2989, 0.5870, 0.1140])
 
         self.master = master
         self.master.title('Write a Number')
