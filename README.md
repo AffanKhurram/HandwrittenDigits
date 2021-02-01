@@ -1,2 +1,3 @@
-# Convolutional-Neural-Network
-Convnet for MNIST dataset for compsci
+# 
+
+Neural Network that recognizes the MNIST dataset digits
