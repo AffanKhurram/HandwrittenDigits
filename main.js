@@ -1,2 +1,3 @@
 
-model = await tf.loadLayersModel('tjfs_model/model.json');
+model = tf.loadLayersModel('tjfs_model/model.json');
+console.log('test')
