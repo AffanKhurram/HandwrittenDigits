@@ -10,7 +10,7 @@ xprev = 0
 yprev = 0
 firstClick = False
 erase = False
-imageArray = [[255 for i in range(500)] for j in range(500)]
+imgs = []
 class DrawingWindow:
     def __init__(self, master):
         root = master
@@ -18,10 +18,10 @@ class DrawingWindow:
             global i, x, y, xprev, yprev, firstClick, stroke, erase
             if erase:
                 color = "#ffffff"
-                size = 8
+                size = 10
             else:
                 color = "#000000"
-                size = 1
+                size = 10
             i = i+1
             if not firstClick:
                 xprev = x
@@ -70,38 +70,79 @@ class DrawingWindow:
                         c.create_oval(x-size, y-size, x+size, y+size, fill = color, outline = color)
                         xprev = x
                         yprev = y
-        #def toggleErase():
-        #    global erase
-        #    erase = not erase
-        #    if erase == True:
-        #        b2.configure(text="Draw")
-        #    else:
-        #        b2.configure(text="Erase")
+
         def clear():
             c.delete("all")
         def save():
-            getter(c)
-            from PIL import Image
-            import cv2
+            from PIL import Image, ImageOps, ImageFilter
             
-            #img = Image.open('test.jpg')
-            #img.convert('1')
-            img = cv2.imread('test.jpg')
-            res = cv2.resize(img, dsize=(28, 28))
-            img2 = Image.fromarray(res, 'LA')
-            img2.save('test2.png')
+            img = getter(c)
+            img = ImageOps.grayscale(img)
+            arr = np.array(img)
+
+            mnist_img = resize(arr)
+
+            imgs.append(mnist_img)
             import multiclassAnn as ann
-            ann.forward_pass(res)
+            ann.forward_pass(mnist_img)
+            from tensorflow import keras
+            model = keras.models.load_model('model.h5')
+            print(np.argmax(model(mnist_img[None, :, :, None], training=False)))         
+
+
         def getter(widget):
             from PIL import ImageGrab
             x=root.winfo_rootx()+widget.winfo_x()
             y=root.winfo_rooty()+widget.winfo_y()
             x1=x+widget.winfo_width()
             y1=y+widget.winfo_height()
-            ImageGrab.grab().crop((x,y,x1,y1)).save("test.jpg")
+            img = ImageGrab.grab().crop((x,y,x1,y1))
+            img.save('test.jpg')
+            return img
 
-        def rgb2gray(rgb):
-            return np.dot(rgb[...,:3], [0.2989, 0.5870, 0.1140])
+        def resize(arr):
+            from PIL import Image, ImageOps, ImageFilter
+            startr, endr, startc, endc = 999, 999, 999, -1
+            for i, row in enumerate(arr):
+                for j, val in enumerate(row):
+                    imgval = -1
+                    if val > 200:
+                        imgval = 255
+                    elif val < 100:
+                        imgval = 0
+                    else:
+                        print('ther was an error ', val)
+                    if imgval == 0:
+                        endr = i
+                        if startr == 999:
+                            startr = i
+                        if j < startc:
+                            startc = j
+                        if j > endc:
+                            endc = j
+
+            newarr = arr[startr:endr+1, startc:endc+1]
+            res_img = Image.fromarray(newarr)
+            res_img.thumbnail((20, 20), Image.ANTIALIAS)
+            res_img = res_img.filter(ImageFilter.SHARPEN)
+            res_img = ImageOps.invert(res_img)
+            res_arr = np.array(res_img) / 255
+            h, w = res_arr.shape
+            sum = np.sum(res_arr)
+            avg_h = np.sum(res_arr * np.arange(h)[:, None]) / sum
+            avg_w = np.sum(res_arr * np.arange(w)) / sum
+            dh = int(14 - avg_h)
+            dw = int(14 - avg_w)
+            mnist_img = np.zeros((28, 28))
+            for i, row in enumerate(res_arr):
+                for j, val in enumerate(row):
+                    mnist_img[i + dh][j + dw] = val
+
+            return mnist_img
+
+        def save_array():
+            import pickle 
+            pickle.dump(np.array(imgs), open('imgs.pkl', 'wb'))
 
         self.master = master
         self.master.title('Write a Number')

@@ -1,3 +1,4 @@
+# %%
 import numpy as np
 
 # Load the MNIST Dataset from sklearn
@@ -39,26 +40,26 @@ b2 = np.zeros((1, 1)) # Bias for hidden
 
 learning_rate = 1
 
-
+# %%
 for i in range(2000):
     # Input -> Output
-    z1 = np.matmul(images, w1) # Multiply our inputs by the weights
+    z1 = images @ w1 # Multiply our inputs by the weights
     a1 = sigmoid(z1) # Apply non-linearity to our hidden layer nodes
 
     # Hidden -> Output
-    z2 = np.matmul(a1, w2)
+    z2 = a1 @ w2
     a2 = sigmoid(z2)
 
     # Backpropagation
     # Output -> Hidden
     dz2 = a2 - labels.reshape(labels.shape[0], 1)       
-    dw2 = (1./n_x) * np.matmul(a1.T, dz2)
-    db2 = (1./n_x) * np.sum(dz2.T, axis=1, keepdims=True)
+    dw2 = (1./n_x) * a1.T @ dz2
+    db2 = (1./n_x) * np.sum(dz2.T, axis=1, keepdimgs=True)
     # Hidden -> Input
     da1 = np.matmul(labels.reshape(labels.shape[0], 1), w2.T)
     
     dz1 = da1 * sigmoid(z1) * (1 - sigmoid(z1))
-    dw1 = (1./n_x) * np.matmul(images.T, dz1)
+    dw1 = (1./n_x) * images.T @ dz1
     
     db1 = (1./n_x) * np.sum(dz1.T, axis=1, keepdims=True)
 
@@ -70,6 +71,12 @@ for i in range(2000):
 
     if i % 100 == 0:
         print('Epoch ', i, 'cost ', computeLoss(labels.reshape(labels.shape[0], 1), a2))
+        np.save(open('W1.txt', 'w'), w1)
+        np.save(open('W2.txt', 'w'), w2)
+        np.save(open('b1.txt', 'w'), b1)
+        np.save(open('b2.txt', 'w'), b2)
+
+
 
 
     

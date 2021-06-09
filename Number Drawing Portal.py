@@ -89,11 +89,11 @@ class DrawingWindow:
                 else:
                     color = 255                     ###########not dealing with this, larger size, different color
                 size = stroke[0][3]                 ###########not dealing with this, larger size, different color
-                imageArray[firstX][y-size] = color
-                imageArray[firstX-size][y] = color
-                imageArray[firstX][y] = color
-                imageArray[x+size][y] = color
-                imageArray[x][y+size] = color
+                # imageArray[firstX][y-size] = color
+                # imageArray[firstX-size][y] = color
+                # imageArray[firstX][y] = color
+                # imageArray[x+size][y] = color
+                # imageArray[x][y+size] = color
                 global xprev
                 global yprev
                 xprev = firstX
