@@ -1,3 +1,23 @@
 
+var canvas = document.getElementById('canvas');
+console.log(canvas)
+var sigpad = new SignaturePad(canvas);
+var clearButton = document.getElementById('clear');
+var saveButton = document.getElementById('save');
+
+saveButton.addEventListener('click', function(event) {
+    var data = sigpad.toDataURL('image/png');
+    console.log(data);
+});
+
+clearButton.addEventListener('click', function(event) {
+    sigpad.clear();
+});
+
+
 model = tf.loadLayersModel('tfjs_model/model.json');
-console.log('test')
+model.then(function (res) {
+    tensor = tf.zeros([1, 28, 28, 1]);
+    result = res.predict(tensor)
+    console.log(result.bufferSync().get(0, 1))
+});
