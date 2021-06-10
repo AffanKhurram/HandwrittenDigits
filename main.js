@@ -1,7 +1,7 @@
 
 var canvas = document.getElementById('canvas');
 var sigpad = new SignaturePad(canvas, {
-    backgroundColor: 'rgba(255, 255, 255, 0)'
+    backgroundColor: 'rgb(255, 255, 255)'
 });
 var clearButton = document.getElementById('clear');
 var saveButton = document.getElementById('save');
