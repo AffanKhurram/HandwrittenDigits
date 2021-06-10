@@ -1,7 +1,8 @@
 
 var canvas = document.getElementById('canvas');
-console.log(canvas)
-var sigpad = new SignaturePad(canvas);
+var sigpad = new SignaturePad(canvas, {
+    backgroundColor: 'rgba(255, 255, 255, 0)'
+});
 var clearButton = document.getElementById('clear');
 var saveButton = document.getElementById('save');
 
