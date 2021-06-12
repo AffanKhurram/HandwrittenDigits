@@ -1,6 +1,7 @@
 'use strict';
 
 var canvas = document.getElementById('canvas');
+var placeAnswer = document.getElementById('value');
 var sigpad = new SignaturePad(canvas, {
     backgroundColor: 'rgb(255, 255, 255)',
     minWidth: 4,
@@ -17,7 +18,6 @@ save.addEventListener('click', function(event) {
     var small = resize(tensor);
     var normalized = invert(small);
     var center = getCenter(normalized);
-    console.log(center);
 
     var before_x = 14 - center.x;
     var before_y = 14 - center.y;
@@ -25,21 +25,12 @@ save.addEventListener('click', function(event) {
     var after_y = 28 - (before_y + normalized.shape[0]);
 
     var finalImage = normalized.pad([[before_y, after_y], [before_x, after_x]]);
-    console.log(finalImage.shape);
-
-
 
     var model = tf.loadLayersModel('tfjs_model/model.json');
     model.then(function(res) {
-        res.predict(finalImage.reshape([1, 28, 28, 1])).argMax(1).print();
+        var pred = res.predict(finalImage.reshape([1, 28, 28, 1])).argMax(1).bufferSync().get(0);
+        placeAnswer.innerHTML = "You wrote a(n): " + String(pred);
     });
-
-    var testCanv = document.createElement('canvas');
-
-    tf.browser.toPixels(finalImage, testCanv).then(function (res) {
-        document.body.appendChild(testCanv);
-        console.log(testCanv.toDataURL());
-    })
 });
 
 clear.addEventListener('click', function(event) {
@@ -115,8 +106,6 @@ function getCenter(img) {
 
     var cx = tf.div(tf.sum(tf.matMul(img, tf.range(0, img.shape[1]).expandDims(-1))), sum);
     var cy = tf.div(tf.sum(tf.matMul(tf.range(0, img.shape[0]).expandDims(0), img)), sum);
-
-    console.log(sum);
 
     return {x: cx.bufferSync().get(0), y: cy.bufferSync().get(0)};
 }
