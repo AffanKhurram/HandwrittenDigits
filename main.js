@@ -11,6 +11,7 @@ var save = document.getElementById('save');
 var clear = document.getElementById('clear');
 
 save.addEventListener('click', function(event) {
+    console.log('original img', sigpad.toDataURL());
     var trimCanv = document.createElement('canvas');
     trimCanv.width = canvas.width;
     trimCanv.height = canvas.height;
@@ -116,13 +117,6 @@ function trim(canv) {
                 endy = i;
             }
         }
-    }
-
-    if (endx > startx || endy > starty) {
-        startx = 0;
-        starty = 0;
-        endx = img.width;
-        endy = img.height;
     }
 
     var smallImg = canv.getContext('2d').getImageData(startx, starty, endx-startx + 1, endy-starty + 1);
