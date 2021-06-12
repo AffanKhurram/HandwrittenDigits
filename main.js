@@ -4,8 +4,8 @@ var canvas = document.getElementById('canvas');
 var placeAnswer = document.getElementById('value');
 var sigpad = new SignaturePad(canvas, {
     backgroundColor: 'rgb(255, 255, 255)',
-    minWidth: 4,
-    maxWidth: 4
+    minWidth: 8,
+    maxWidth: 8
 });
 
 var save = document.getElementById('save');
