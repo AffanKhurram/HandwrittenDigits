@@ -12,152 +12,111 @@ var clear = document.getElementById('clear');
 
 save.addEventListener('click', function(event) {
     console.log('original img', sigpad.toDataURL());
-    var trimCanv = document.createElement('canvas');
-    trimCanv.width = canvas.width;
-    trimCanv.height = canvas.height;
-    trimCanv.getContext('2d').drawImage(canvas, 0, 0);
-    trim(trimCanv);
-
-    var smallImg = new Image();
-    smallImg.src = trimCanv.toDataURL();
-
-    smallImg.onload = function() {
-        var aspectRatio = smallImg.width/smallImg.height;
-        if (smallImg.width > smallImg.height) {
-            trimCanv.width = 20;
-            trimCanv.height = trimCanv.width / aspectRatio;
-        }
-        else {
-            trimCanv.height = 20;
-            trimCanv.width = trimCanv.height * aspectRatio;
-        }
-        var smallCtx = trimCanv.getContext('2d');
-        smallCtx.fillStyle = 'white';
-        smallCtx.fillRect(0, 0, trimCanv.width, trimCanv.height);
-        smallCtx.drawImage(smallImg, 0, 0, trimCanv.width, trimCanv.height);
-        console.log(trimCanv.toDataURL());
-        console.log(trimCanv.width, trimCanv.height);
-
-        var imgData = smallCtx.getImageData(0, 0, trimCanv.width, trimCanv.height);
-        console.log('creation:', imgData);
-        grayscale(imgData);
-        console.log('after grayscale: ', imgData);
-        var c = center(imgData);
-
-        var finalCanv = document.createElement('canvas');
-        var finalCtx = finalCanv.getContext('2d');
-        finalCanv.width = 28;
-        finalCanv.height = 28;
-        var dx = 14 - c.x;
-        var dy = 14 - c.y;
-        finalCtx.fillStyle = 'white';
-        finalCtx.fillRect(0, 0, 28, 28);
-        finalCtx.putImageData(imgData, dx, dy);
-        console.log(finalCanv.toDataURL());
-
-        var model = tf.loadLayersModel('tfjs_model/model.json');
-        model.then(function (res) {
-            var tensor = tf.browser.fromPixels(finalCtx.getImageData(0, 0, 28, 28)).mean(2).toFloat().expandDims(0).expandDims(-1);
-            var norm = tf.scalar(255);
-            var sub = tf.scalar(1);
-            tensor = tf.div(tensor, norm);
-            tensor = tf.sub(sub, tensor);
-
-            var tensorImage = document.createElement('canvas');
-            tf.browser.toPixels(tensor.reshape([28, 28, 1]), tensorImage).then(function (res) {
-                console.log('tensor', tensorImage.toDataURL());
-            });
-
-            var result = res.predict(tensor.reshape([1, 28, 28, 1]));
-            result.print();
-            result.argMax(1).print();
-        });
-    }
-
-    // img.onload = function() {
-    //     var small = document.createElement('canvas');
-    //     var size = 20;  
-    //     small.width = size;
-    //     small.height = size;
     
-    //     var ctx = small.getContext('2d');
-    //     ctx.fillStyle = 'white';
-    //     ctx.fillRect(0, 0, size, size);
-    //     ctx.drawImage(img, 0, 0, size, size);
-    //     console.log(small.toDataURL());
-    // }
-    
+    var tensor = tf.browser.fromPixels(canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height)).mean(2);
+    var small = resize(tensor);
+    var normalized = invert(small);
+    var center = getCenter(normalized);
+    console.log(center);
+
+    var before_x = 14 - center.x;
+    var before_y = 14 - center.y;
+    var after_x = 28 - (before_x + normalized.shape[1]);
+    var after_y = 28 - (before_y + normalized.shape[0]);
+
+    var finalImage = normalized.pad([[before_y, after_y], [before_x, after_x]]);
+    console.log(finalImage.shape);
+
+
+
+    var model = tf.loadLayersModel('tfjs_model/model.json');
+    model.then(function(res) {
+        res.predict(finalImage.reshape([1, 28, 28, 1])).argMax(1).print();
+    });
+
+    var testCanv = document.createElement('canvas');
+
+    tf.browser.toPixels(finalImage, testCanv).then(function (res) {
+        document.body.appendChild(testCanv);
+        console.log(testCanv.toDataURL());
+    })
 });
 
 clear.addEventListener('click', function(event) {
     sigpad.clear()
 });
 
-function trim(canv) {
-    var img = canv.getContext('2d').getImageData(0, 0, canv.width, canv.height);
-    var data = img.data;
-    var startx = img.width;
-    var endx = 0;
-    var starty = img.height;
-    var endy = 0;
+// crops and resizes img down to 20 by 20 while keeping the aspect ratio
+function resize(img) {
+    var small = img.bufferSync();
+    var startr = small.shape[1];
+    var endr = 0;
+    var startc = small.shape[0];
+    var endc = 0;
+    for (var i = 0; i < small.shape[0]; i++) {
+        for (var j = 0; j < small.shape[1]; j++) {
 
-    for (var i = 0; i < img.height; i++) {
-        for (var j = 0; j < img.width; j++) {
-            var valIndex = (i * img.width + j)*4;
-            if (data[valIndex] !== 255 && data[valIndex+1] !== 255 && data[valIndex+2] !== 255) {
-                if (i < starty) {
-                    starty = i;
+            // If very dark square
+            if (small.get(i, j) < 50) {
+                if (i < startr) {
+                    startr = i;
                 }
-                if (j < startx) {
-                    startx = j;
+                if (j < startc) {
+                    startc = j;
                 }
-                if (j > endx) {
-                    endx = j;
+                if (j > endc) {
+                    endc = j;
                 }
-                endy = i;
+                endr = i;
             }
         }
     }
 
-    var smallImg = canv.getContext('2d').getImageData(startx, starty, endx-startx + 1, endy-starty + 1);
-    canv.width = smallImg.width;
-    canv.height = smallImg.height;
-    canv.getContext('2d').putImageData(smallImg, 0, 0);
+    // If white image
+    if (endr < startr || endc < startc) {
+        endr = small.shape[1];
+        startr = 0;
+        startc = 0;
+        endc = small.shape[0];
+    }
+
+    var width = endc - startc + 1;
+    var height = endr - startr + 1;
+    var aspectRatio = width/height;
+
+    var sizex = 0;
+    var sizey = 0;
+
+    if (width > height) {
+        sizex = 20;
+        sizey = 20 / aspectRatio;
+    }
+    else {
+        sizey = 20;
+        sizex = 20 * aspectRatio;
+    }
+
+    var box = tf.tensor([startr/img.shape[0], startc/img.shape[1], endr/img.shape[0], endc/img.shape[1]], [1, 4]);
+    var smallTensor = tf.image.cropAndResize(img.expandDims(0).expandDims(-1), box, [0], [Math.floor(sizey), Math.floor(sizex)], 'bilinear');
+
+    return tf.cast(smallTensor.squeeze(), 'int32');
 }
 
-function grayscale(imgData) {
-    var width = imgData.width;
-    var height = imgData.height;
-    var data = imgData.data;
-    for (var i = 0; i < height; i++) {
-        for (var j = 0; j < width; j++) {
-            var valIndex = 4 * (i * width + j);
-            var avg = (data[valIndex] + data[valIndex+1] + data[valIndex+2])/3
-            data[valIndex] = avg;
-            data[valIndex+1] = avg;
-            data[valIndex+2] = avg;
-        }
-    }
+// Inverts and normalizes the img values
+function invert(img) {
+    const one = tf.scalar(1);
+    const norm = tf.scalar(255);
+
+    return tf.sub(one, tf.div(img, norm));
 }
 
-function center(imgData) {
-    var width = imgData.width;
-    var height = imgData.height;
-    var data = imgData.data;
-    var x = 0;
-    var y = 0;
-    var sum = 0;
-    for (var i = 0; i < height; i++) {
-        for (var j = 0; j < width; j++) {
-            var valIndex = 4 * (i * width + j);
-            var val = 1 - data[valIndex]/255;
-            sum += val;
-            x += j * val;
-            y += i * val;
-        }
-    }
-    x /= sum;
-    y /= sum;
+function getCenter(img) {
+    var sum = img.sum();
 
-    return {x: x, y: y};
+    var cx = tf.div(tf.sum(tf.matMul(img, tf.range(0, img.shape[1]).expandDims(-1))), sum);
+    var cy = tf.div(tf.sum(tf.matMul(tf.range(0, img.shape[0]).expandDims(0), img)), sum);
+
+    console.log(sum);
+
+    return {x: cx.bufferSync().get(0), y: cy.bufferSync().get(0)};
 }
