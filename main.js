@@ -13,7 +13,6 @@ var clear = document.getElementById('clear');
 
 save.addEventListener('click', function(event) {
     console.log('original img', sigpad.toDataURL());
-    
     var tensor = tf.browser.fromPixels(canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height)).mean(2);
     var small = resize(tensor);
     var normalized = invert(small);
@@ -32,6 +31,8 @@ save.addEventListener('click', function(event) {
         placeAnswer.innerHTML = "You wrote a(n): " + String(pred);
     });
 });
+
+
 
 clear.addEventListener('click', function(event) {
     sigpad.clear()
