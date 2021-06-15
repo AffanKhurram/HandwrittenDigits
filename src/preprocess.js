@@ -1,43 +1,5 @@
-'use strict';
 
-import { Spinner } from "./modules/spin.js";
-
-var canvas = document.getElementById('canvas');
-var placeAnswer = document.getElementById('value');
-var sigpad = new SignaturePad(canvas, {
-    backgroundColor: 'rgb(255, 255, 255)',
-    minWidth: 8,
-    maxWidth: 8
-});
-
-var save = document.getElementById('save');
-var clear = document.getElementById('clear');
-
-var opts = {
-    lines: 12, // The number of lines to draw
-    length: 0, // The length of each line
-    width: 10, // The line thickness
-    radius: 18, // The radius of the inner circle
-    scale: 1, // Scales overall size of the spinner
-    corners: 1, // Corner roundness (0..1)
-    speed: 1, // Rounds per second
-    rotate: 7, // The rotation offset
-    animation: 'spinner-line-fade-quick', // The CSS animation name for the lines
-    direction: 1, // 1: clockwise, -1: counterclockwise
-    color: '#ffffff', // CSS color or array of colors
-    fadeColor: 'transparent', // CSS color or array of colors
-    top: '50%', // Top position relative to parent
-    left: '50%', // Left position relative to parent
-    shadow: '0 0 1px transparent', // Box-shadow for the lines
-    zIndex: 2000000000, // The z-index (defaults to 2e9)
-    className: 'spinner', // The CSS class to assign to the spinner
-    position: 'absolute', // Element positioning
-};
-var spinner = new Spinner(opts);
-
-save.addEventListener('click', function(event) {
-    console.log('original img', sigpad.toDataURL());
-    spinner.spin(placeAnswer);
+function process(canv) {
     var tensor = tf.browser.fromPixels(canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height)).mean(2);
     var small = resize(tensor);
     var normalized = invert(small);
@@ -49,20 +11,8 @@ save.addEventListener('click', function(event) {
     var after_y = 28 - (before_y + normalized.shape[0]);
 
     var finalImage = normalized.pad([[before_y, after_y], [before_x, after_x]]);
-
-    var model = tf.loadLayersModel('tfjs_model/model.json');
-    model.then(function(res) {
-        var pred = res.predict(finalImage.reshape([1, 28, 28, 1])).argMax(1).bufferSync().get(0);
-        spinner.stop();
-        placeAnswer.innerHTML = "You wrote a(n): " + String(pred);
-    });
-});
-
-
-
-clear.addEventListener('click', function(event) {
-    sigpad.clear()
-});
+    return finalImage;
+}
 
 // crops and resizes img down to 20 by 20 while keeping the aspect ratio
 function resize(img) {

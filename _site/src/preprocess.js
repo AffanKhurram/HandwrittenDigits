@@ -1,18 +1,5 @@
-'use strict';
 
-var canvas = document.getElementById('canvas');
-var placeAnswer = document.getElementById('value');
-var sigpad = new SignaturePad(canvas, {
-    backgroundColor: 'rgb(255, 255, 255)',
-    minWidth: 8,
-    maxWidth: 8
-});
-
-var save = document.getElementById('save');
-var clear = document.getElementById('clear');
-
-save.addEventListener('click', function(event) {
-    console.log('original img', sigpad.toDataURL());
+function process(canv) {
     var tensor = tf.browser.fromPixels(canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height)).mean(2);
     var small = resize(tensor);
     var normalized = invert(small);
@@ -24,19 +11,8 @@ save.addEventListener('click', function(event) {
     var after_y = 28 - (before_y + normalized.shape[0]);
 
     var finalImage = normalized.pad([[before_y, after_y], [before_x, after_x]]);
-
-    var model = tf.loadLayersModel('tfjs_model/model.json');
-    model.then(function(res) {
-        var pred = res.predict(finalImage.reshape([1, 28, 28, 1])).argMax(1).bufferSync().get(0);
-        placeAnswer.innerHTML = "You wrote a(n): " + String(pred);
-    });
-});
-
-
-
-clear.addEventListener('click', function(event) {
-    sigpad.clear()
-});
+    return finalImage;
+}
 
 // crops and resizes img down to 20 by 20 while keeping the aspect ratio
 function resize(img) {
