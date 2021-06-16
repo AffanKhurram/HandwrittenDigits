@@ -1,3 +1,4 @@
+'use strict';
 
 function process(canv) {
     var tensor = tf.browser.fromPixels(canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height)).mean(2);

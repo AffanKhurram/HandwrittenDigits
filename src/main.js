@@ -21,10 +21,10 @@ tf.loadLayersModel('tfjs_model/model.json')
 
 
 // Click functions for the buttons
-save.addEventListener('click', function(event) {
+save.addEventListener('click', async function(event) {
     console.log('original img', sigpad.toDataURL());
 
-
+    await displayConv(model);
     placeAnswer.innerHTML = "You wrote a(n): Working...";
 
     var img = process(canvas);
